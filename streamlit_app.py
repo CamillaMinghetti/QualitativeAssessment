@@ -62,6 +62,8 @@ if "question_index" not in st.session_state:
 if "responses" not in st.session_state:
     # Initialize responses with None
     st.session_state["responses"] = [None] * len(video_paths)
+if "name_entered" not in st.session_state:
+    st.session_state["name_entered"] = False
 
 # ----- App Title and Description -----
 st.title("Qualitative Performance Assessment of EndoDAC and Depth Pro Models")
@@ -96,116 +98,122 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# ----- Continue Button -----
-if st.button("Continue"):
-    # ----- Clinician Questions -----
+# ----- Clinician Questions -----
+if not st.session_state["name_entered"]:
+    # Ask for clinician information and name input
     clinician = st.radio("Are you a clinician?", ["Yes", "No"])
     experience_level = None
     if clinician == "Yes":
         experience_level = st.radio("What is your experience level?", ["Resident", "Esperto"])
     
-    # ----- Name Input -----
     name = st.text_input("Please enter your name")
-
-    # ----- Questionnaire and Video Display -----
+    
+    # Store clinician info and name, then move to the first video
     if name:
-        st.header("Questionnaire")
-        question_index = st.session_state["question_index"]
-        st.subheader(f"Question {question_index + 1}")
+        st.session_state["clinician"] = clinician
+        st.session_state["experience_level"] = experience_level if clinician == "Yes" else None
+        st.session_state["name_entered"] = True
+        st.session_state["question_index"] = 0  # Start from the first question
+        st.experimental_rerun()  # Trigger a rerun to proceed with the next steps
+
+# ----- Display Videos and Questionnaire -----
+if st.session_state["name_entered"]:
+    question_index = st.session_state["question_index"]
+    
+    # Display video using HTML embed with responsive CSS
+    video_path = video_paths[question_index]
+    video_html = get_video_html(video_path, VIDEO_MAX_WIDTH)
+    if video_html:
+        # The height is approximate; adjust as needed for your videos
+        components.html(video_html, height=int(VIDEO_MAX_WIDTH * 0.75))
+    
+    # Define options with a placeholder as the first option
+    options = ["Select an option", "Left", "Right"]
+    existing_response = st.session_state["responses"][question_index]
+    if existing_response in ["Left", "Right"]:
+        default_index = options.index(existing_response)
+    else:
+        default_index = 0  # Placeholder
+    
+    response = st.radio(
+        "Which of the two side videos (left or right) do you think best reflects reality in terms of accuracy in depth estimation?", 
+        options, 
+        key=f"question_{question_index}",
+        index=default_index
+    )
+    
+    # Store the response only if it's a valid selection
+    if response in ["Left", "Right"]:
+        st.session_state["responses"][question_index] = response
+    else:
+        st.session_state["responses"][question_index] = None
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Previous") and question_index > 0:
+            st.session_state["question_index"] -= 1
+            st.experimental_rerun()
+    with col2:
+        # Disable Next if no valid answer has been made
+        if st.button("Next", disabled=(st.session_state["responses"][question_index] is None)) and question_index < len(video_paths) - 1:
+            st.session_state["question_index"] += 1
+            st.experimental_rerun()
+    
+    # ----- Submission Block -----
+    if question_index == len(video_paths) - 1 and st.button("Submit Answers", disabled=(st.session_state["responses"][question_index] is None)):
+        # Create a folder for JSON responses if it does not exist
+        responses_folder = "responses"
+        if not os.path.exists(responses_folder):
+            os.makedirs(responses_folder)
         
-        # Display video using HTML embed with responsive CSS
-        video_path = video_paths[question_index]
-        video_html = get_video_html(video_path, VIDEO_MAX_WIDTH)
-        if video_html:
-            # The height is approximate; adjust as needed for your videos
-            components.html(video_html, height=int(VIDEO_MAX_WIDTH * 0.75))
+        # Sanitize name for filename
+        safe_name = re.sub(r'[^\w\-_. ]', '_', name).strip()
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        file_name = f"{safe_name}_{timestamp}.json"
+        file_path = os.path.join(responses_folder, file_name)
         
-        # Define options with a placeholder as the first option
-        options = ["Select an option", "Left", "Right"]
-        existing_response = st.session_state["responses"][question_index]
-        if existing_response in ["Left", "Right"]:
-            default_index = options.index(existing_response)
-        else:
-            default_index = 0  # Placeholder
+        # Prepare response data
+        new_data = {
+            "Name": name,
+            "Clinician": clinician,
+            "Experience Level": experience_level if clinician == "Yes" else None,
+        }
+        for i in range(len(video_paths)):
+            new_data[f"Question {i+1}"] = st.session_state["responses"][i] if st.session_state["responses"][i] else "No Response"
         
-        response = st.radio(
-            "Which of the two side videos (left or right) do you think best reflects reality in terms of accuracy in depth estimation?", 
-            options, 
-            key=f"question_{question_index}",
-            index=default_index
-        )
+        # Save locally as JSON
+        try:
+            with open(file_path, "w") as f:
+                json.dump(new_data, f, indent=4)
+        except Exception as e:
+            st.error(f"Error saving JSON file: {e}")
         
-        # Store the response only if it's a valid selection
-        if response in ["Left", "Right"]:
-            st.session_state["responses"][question_index] = response
-        else:
-            st.session_state["responses"][question_index] = None
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("Previous") and question_index > 0:
-                st.session_state["question_index"] -= 1
-                st.rerun()
-        with col2:
-            # Disable Next if no valid answer has been made
-            if st.button("Next", disabled=(st.session_state["responses"][question_index] is None)) and question_index < len(video_paths) - 1:
-                st.session_state["question_index"] += 1
-                st.rerun()
-        
-        # ----- Submission Block -----
-        if question_index == len(video_paths) - 1 and st.button("Submit Answers", disabled=(st.session_state["responses"][question_index] is None)):
-            # Create a folder for JSON responses if it does not exist
-            responses_folder = "responses"
-            if not os.path.exists(responses_folder):
-                os.makedirs(responses_folder)
+        # ----- Google Sheets Setup -----
+        try:
+            scope = [
+                "https://www.googleapis.com/auth/spreadsheets",
+                "https://www.googleapis.com/auth/drive"
+            ]
+            creds_data = st.secrets["gcp_service_account"]
+            creds = Credentials.from_service_account_info(creds_data, scopes=scope)
+            client = gspread.authorize(creds)
+            # Open your Google Sheet (ensure the sheet is shared with your service account)
+            sheet = client.open("Responses_qualitative_assessment").sheet1
             
-            # Sanitize name for filename
-            safe_name = re.sub(r'[^\w\-_. ]', '_', name).strip()
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            file_name = f"{safe_name}_{timestamp}.json"
-            file_path = os.path.join(responses_folder, file_name)
+            # Prepare row data (order should match your sheet header)
+            row_data = [
+                name,
+                clinician,
+                experience_level if clinician == "Yes" else "",
+            ]
+            row_data.extend([st.session_state["responses"][i] if st.session_state["responses"][i] else "No Response" for i in range(len(video_paths))])
             
-            # Prepare response data
-            new_data = {
-                "Name": name,
-                "Clinician": clinician,
-                "Experience Level": experience_level if clinician == "Yes" else None,
-            }
-            for i in range(len(video_paths)):
-                new_data[f"Question {i+1}"] = st.session_state["responses"][i] if st.session_state["responses"][i] else "No Response"
-            
-            # Save locally as JSON
-            try:
-                with open(file_path, "w") as f:
-                    json.dump(new_data, f, indent=4)
-            except Exception as e:
-                st.error(f"Error saving JSON file: {e}")
-            
-            # ----- Google Sheets Setup -----
-            try:
-                scope = [
-                    "https://www.googleapis.com/auth/spreadsheets",
-                    "https://www.googleapis.com/auth/drive"
-                ]
-                creds_data = st.secrets["gcp_service_account"]
-                creds = Credentials.from_service_account_info(creds_data, scopes=scope)
-                client = gspread.authorize(creds)
-                # Open your Google Sheet (ensure the sheet is shared with your service account)
-                sheet = client.open("Responses_qualitative_assessment").sheet1
-                
-                # Prepare row data (order should match your sheet header)
-                row_data = [
-                    name,
-                    clinician,
-                    experience_level if clinician == "Yes" else "",
-                ]
-                row_data.extend([st.session_state["responses"][i] if st.session_state["responses"][i] else "No Response" for i in range(len(video_paths))])
-                
-                # Append row to the sheet
-                sheet.append_row(row_data)
-            except Exception as e:
-                st.error(f"Error saving to Google Sheets: {e}")
-            
-            st.success("Your answers have been saved!")
+            # Append row to the sheet
+            sheet.append_row(row_data)
+        except Exception as e:
+            st.error(f"Error saving to Google Sheets: {e}")
+        
+        st.success("Your answers have been saved!")
+
             st.stop()
 
