@@ -11,6 +11,33 @@ from google.oauth2.service_account import Credentials
 
 # Set page layout to wide for responsiveness
 st.set_page_config(layout="wide")
+# Set page layout to wide for responsiveness
+st.set_page_config(layout="wide")
+
+# ----- Helper Function for Video Display -----
+def get_video_html(video_path, max_width):
+    try:
+        with open(video_path, "rb") as f:
+            video_bytes = f.read()
+        encoded_video = base64.b64encode(video_bytes).decode()
+    except Exception as e:
+        st.error(f"Error loading video: {e}")
+        return ""
+    # Use inline CSS to ensure responsiveness: full width (up to max_width pixels)
+    video_html = f"""
+    <style>
+      .responsive-video {{
+        width: 100%;
+        max-width: {max_width}px;
+        height: auto;
+      }}
+    </style>
+    <video class="responsive-video" controls>
+      <source src="data:video/mp4;base64,{encoded_video}" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+    """
+    return video_html
 
 # ----- Gestione delle Pagine -----
 if "page" not in st.session_state:
