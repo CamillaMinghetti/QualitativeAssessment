@@ -90,13 +90,7 @@ st.write(
     "and finally red indicating the shallowest areas."
 )
 
-st.markdown(
-    f'<div style="text-align: center;">'
-    f'<img src="./frame_00379.png" width="600" />'
-    f'<p>Example Depth Maps from AI Models</p>'
-    f'</div>',
-    unsafe_allow_html=True
-)
+st.image("./frame_00379.png", caption="Example Depth Maps from AI Models", width=600)
 
 # ----- Clinician Questions -----
 if not st.session_state["name_entered"]:
@@ -215,5 +209,5 @@ if st.session_state["name_entered"]:
         
         st.success("Your answers have been saved!")
 
-            st.stop()
+        st.stop()
 
