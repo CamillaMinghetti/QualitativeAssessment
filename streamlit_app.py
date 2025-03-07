@@ -146,12 +146,12 @@ if st.session_state["name_entered"]:
     with col1:
         if st.button("Previous") and question_index > 0:
             st.session_state["question_index"] -= 1
-            st.experimental_rerun()
+            st.rerun()
     with col2:
         # Disable Next if no valid answer has been made
         if st.button("Next", disabled=(st.session_state["responses"][question_index] is None)) and question_index < len(video_paths) - 1:
             st.session_state["question_index"] += 1
-            st.experimental_rerun()
+            st.rerun()
     
     # ----- Submission Block -----
     if question_index == len(video_paths) - 1 and st.button("Submit Answers", disabled=(st.session_state["responses"][question_index] is None)):
