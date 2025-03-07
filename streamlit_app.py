@@ -39,32 +39,6 @@ def get_video_html(video_path, max_width):
     """
     return video_html
 
-# ----- Video Paths -----
-video_paths = [
-    "./VideoColonoscopy3.mp4",
-    "./VideoColonoscopy4.mp4",
-    "./VideoColonoscopy5.mp4",
-    "./VideoColonoscopy6.mp4",
-    "./VideoColonoscopy7.mp4",
-    "./VideoColonoscopy8.mp4",
-    "./VideoColonoscopy9.mp4",
-    "./VideoColonoscopy10.mp4",
-    "./VideoColonoscopy11.mp4",
-    "./VideoColonoscopy12.mp4",
-]
-
-# ----- Video Display Settings -----
-VIDEO_MAX_WIDTH = 640  # Maximum width in pixels; video will scale responsively
-
-# ----- Session State Initialization -----
-if "question_index" not in st.session_state:
-    st.session_state["question_index"] = 0
-if "responses" not in st.session_state:
-    # Initialize responses with None
-    st.session_state["responses"] = [None] * len(video_paths)
-if "name_entered" not in st.session_state:
-    st.session_state["name_entered"] = False
-
 # ----- App Title and Description -----
 st.title("Qualitative Performance Assessment of EndoDAC and Depth Pro Models")
 st.write(
@@ -93,26 +67,45 @@ st.write(
 st.image("./frame_00379.png", caption="Example Depth Maps from AI Models", width=600)
 
 # ----- Clinician Questions -----
-if not st.session_state["name_entered"]:
-    # Ask for clinician information and name input
-    clinician = st.radio("Are you a clinician?", ["Yes", "No"])
-    experience_level = None
-    if clinician == "Yes":
-        experience_level = st.radio("What is your experience level?", ["Resident", "Esperto"])
-    
-    name = st.text_input("Please enter your name")
-    
-    # Store clinician info and name, then move to the first video
-    if name:
-        st.session_state["clinician"] = clinician
-        st.session_state["experience_level"] = experience_level if clinician == "Yes" else None
-        st.session_state["name_entered"] = True
-        st.session_state["question_index"] = 0  # Start from the first question
-        st.rerun()  # Trigger a rerun to proceed with the next steps
+clinician = st.radio("Are you a clinician?", ["Yes", "No"])
+experience_level = None
 
-# ----- Display Videos and Questionnaire -----
-if st.session_state["name_entered"]:
+if clinician == "Yes":
+    experience_level = st.radio("What is your experience level?", ["Resident", "Expert (at least 5000 endoscopic procedures)"])
+
+
+# ----- Name Input -----
+name = st.text_input("Please enter your name")
+
+# ----- Video Display Settings -----
+VIDEO_MAX_WIDTH = 640  # Maximum width in pixels; video will scale responsively
+
+# ----- Video Paths -----
+video_paths = [
+    "./VideoColonoscopy3.mp4",
+    "./VideoColonoscopy4.mp4",
+    "./VideoColonoscopy5.mp4",
+    "./VideoColonoscopy6.mp4",
+    "./VideoColonoscopy7.mp4",
+    "./VideoColonoscopy8.mp4",
+    "./VideoColonoscopy9.mp4",
+    "./VideoColonoscopy10.mp4",
+    "./VideoColonoscopy11.mp4",
+    "./VideoColonoscopy12.mp4",
+]
+
+# ----- Session State Initialization -----
+if "question_index" not in st.session_state:
+    st.session_state["question_index"] = 0
+if "responses" not in st.session_state:
+    # Initialize responses with None
+    st.session_state["responses"] = [None] * len(video_paths)
+
+# ----- Questionnaire and Video Display -----
+if name:
+    st.header("Questionnaire")
     question_index = st.session_state["question_index"]
+    st.subheader(f"Question {question_index + 1}")
     
     # Display video using HTML embed with responsive CSS
     video_path = video_paths[question_index]
@@ -208,6 +201,7 @@ if st.session_state["name_entered"]:
             st.error(f"Error saving to Google Sheets: {e}")
         
         st.success("Your answers have been saved!")
-
+        st.write("### Thanks for taking part in the questionnaire!")
         st.stop()
+
 
