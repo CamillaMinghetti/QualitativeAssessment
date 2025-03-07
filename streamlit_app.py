@@ -171,7 +171,7 @@ if name:
             creds = Credentials.from_service_account_info(creds_data, scopes=scope)
             client = gspread.authorize(creds)
             # Open your Google Sheet (ensure the sheet is shared with your service account)
-            sheet = client.open("Quantitative_assesment").sheet1
+            sheet = client.open("Responses_qualitative_assessment").sheet1
             
             # Prepare row data (order should match your sheet header)
             row_data = [
