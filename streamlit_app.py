@@ -70,7 +70,7 @@ if st.button("Continue"):
     clinician = st.radio("Are you a clinician?", ["Yes", "No"])
     experience_level = None
     if clinician == "Yes":
-    experience_level = st.radio("What is your experience level?", ["Resident", "Esperto"])
+        experience_level = st.radio("What is your experience level?", ["Resident", "Esperto"])
     
 # ----- Name Input -----
 name = st.text_input("Please enter your name")
