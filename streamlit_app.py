@@ -11,8 +11,7 @@ from google.oauth2.service_account import Credentials
 
 # Set page layout to wide for responsiveness
 st.set_page_config(layout="wide")
-# Set page layout to wide for responsiveness
-st.set_page_config(layout="wide")
+
 
 # ----- Helper Function for Video Display -----
 def get_video_html(video_path, max_width):
