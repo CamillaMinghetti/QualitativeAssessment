@@ -107,15 +107,27 @@ if name:
     question_index = st.session_state["question_index"]
     st.subheader(f"Question {question_index + 1}")
     
+    # Custom CSS to reduce spacing
+    st.markdown("""
+        <style>
+            .video-container {
+                margin-bottom: 5px;  /* Adjust this value to control space between the video and the question */
+            }
+            .stRadio label {
+                margin-top: 10px;  /* Adjust if needed for the radio button spacing */
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
     # Display video using HTML embed with responsive CSS
     video_path = video_paths[question_index]
     video_html = get_video_html(video_path, VIDEO_MAX_WIDTH)
     if video_html:
         # The height is approximate; adjust as needed for your videos
-        components.html(video_html, height=int(VIDEO_MAX_WIDTH * 0.75))
+        components.html(video_html, height=int(VIDEO_MAX_WIDTH * 0.75), scrolling=True)
     
     # Define options with a placeholder as the first option
-    options = ["Select an option", "Left", "Right"]
+    options = ["Left", "Right"]
     existing_response = st.session_state["responses"][question_index]
     if existing_response in ["Left", "Right"]:
         default_index = options.index(existing_response)
@@ -123,11 +135,12 @@ if name:
         default_index = 0  # Placeholder
     
     response = st.radio(
-        "Which of the two side videos (left or right) do you think best reflects reality in terms of accuracy in depth estimation?", 
+        "Which of the two side videos (left or right) do you think best reflects reality in terms of accuracy in depth estimation?\nSelect an option:", 
         options, 
         key=f"question_{question_index}",
         index=default_index
     )
+
     
     # Store the response only if it's a valid selection
     if response in ["Left", "Right"]:
