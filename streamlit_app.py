@@ -108,7 +108,7 @@ if not st.session_state["name_entered"]:
         st.session_state["experience_level"] = experience_level if clinician == "Yes" else None
         st.session_state["name_entered"] = True
         st.session_state["question_index"] = 0  # Start from the first question
-        st.experimental_rerun()  # Trigger a rerun to proceed with the next steps
+        st.rerun()  # Trigger a rerun to proceed with the next steps
 
 # ----- Display Videos and Questionnaire -----
 if st.session_state["name_entered"]:
