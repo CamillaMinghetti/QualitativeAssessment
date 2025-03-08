@@ -108,10 +108,10 @@ if name:
     st.markdown("""
         <style>
             .video-container {
-                margin-bottom: 5px;  /* Adjust this value to control space between the video and the question */
+                margin-bottom: -10px;  /* Adjust this value to control space between the video and the question */
             }
             .stRadio label {
-                margin-top: 10px;  /* Adjust if needed for the radio button spacing */
+                margin-top: 0px;  /* Adjust if needed for the radio button spacing */
             }
         </style>
     """, unsafe_allow_html=True)
