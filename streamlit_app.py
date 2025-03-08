@@ -42,7 +42,7 @@ def get_video_html(video_path, max_width):
 # ----- App Title and Description -----
 st.title("Qualitative Performance Assessment of EndoDAC and Depth Pro Models")
 st.write(
-    "Two-dimensional visualization during colonoscopy can limit diagnostic accuracy, "
+    "*Two-dimensional visualization during colonoscopy can limit diagnostic accuracy, "
     "increasing the risk of undetected lesions. Depth estimation is crucial to reconstruct a "
     "three-dimensional view of the bowel environment. "
     "However, obtaining accurate reference data (ground truth) in the clinical setting is particularly difficult "
