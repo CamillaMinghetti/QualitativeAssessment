@@ -71,7 +71,6 @@ experience_level = None
 if clinician == "Yes":
     experience_level = st.radio("What is your experience level?", ["Resident", "Young Physician" , "Expert Physician"])
 
-
 # ----- Name Input -----
 name = st.text_input("Please enter your name")
 
@@ -139,7 +138,6 @@ if name:
         index=default_index
     )
 
-    
     # Store the response only if it's a valid selection
     if response in ["Left", "Right"]:
         st.session_state["responses"][question_index] = response
@@ -152,11 +150,13 @@ if name:
             st.session_state["question_index"] -= 1
             st.rerun()
     with col2:
-        # Disable Next if no valid answer has been made
-        if st.button("Next", disabled=(st.session_state["responses"][question_index] is None)) and question_index < len(video_paths) - 1:
+        next_disabled = st.session_state["responses"][question_index] is None
+        next_button = st.button("Next", disabled=next_disabled)
+    
+        if next_button and not next_disabled and question_index < len(video_paths) - 1:
             st.session_state["question_index"] += 1
             st.rerun()
-    
+
     # ----- Submission Block -----
     if question_index == len(video_paths) - 1 and st.button("Submit Answers", disabled=(st.session_state["responses"][question_index] is None)):
         # Create a folder for JSON responses if it does not exist
